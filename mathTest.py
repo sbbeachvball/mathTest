@@ -43,45 +43,51 @@ class mathTest:
             print "Times Up!!"
         else:
             print remaining,"seconds remaining"
-    
+
+    def carryOn(self,s = ''):
+        self.summary(s)
+
     def finish(self,s = ''):
-        if s :
-            print s
-            
-        self.summary("Final Results")
+        self.summary(s+" Final Results")
         sys.exit(0)
         
     def quiz(self,l):
+        # start timer
         self.now = int(time.time())
         self.end = self.now + self.quizTimer
         
-        # start timer
-        # pull two entries off of the list
+        # while there is still time ask the next question
         while len(self.test) >= 2 and self.now < self.end:
+            # pull two entries off of the list
             top = self.test.pop()
             bot = self.test.pop()
             
             self.stats['counter'] += 1
             
             answer = raw_input( "Q%d : what is  %d  X  %d ?: " % (self.stats['counter'],top,bot))
+            
+            # get the answer time....
             self.now = int(time.time())
             #print "answer:"+answer+":"
-            if answer == "q" or answer == "Q":
+            
+            # should probably check time BEFORE evaluating the answer
+            if self.now > self.end:
+                self.finish("Sorry, time ran out")
+            elif answer == "q" or answer == "Q":
                 self.finish("Bailing Early")
             elif not self.is_number(answer):
                 self.stats['skipped'] += 1
-                msg = 'SKIPPED'
+                self.carryOn('SKIPPED')
             elif ( top * bot ) == int(answer):
                 self.stats['correct'] += 1
-                msg = "RIGHT!!"
+                self.carryOn("RIGHT!!")
             else:
                 self.stats['incorrect'] += 1
-                msg = "OOPS - the correct answer is: "+str(top*bot)
+                self.carryOn("OOPS - the correct answer is: "+str(top*bot))
         
-            self.summary(msg)
-
-        if self.now > self.end:
-            self.summary("Times Up!!  Final Results")
+        ### if we ran out of time before getting here, issue appropriate message
+        ##if self.now > self.end:
+        ##    self.summary("Times Up!!  Final Results")
 
 mt = mathTest(totalQuestions,quizSeconds)
 mt.quiz(mt.test)
