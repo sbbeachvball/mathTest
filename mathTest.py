@@ -3,8 +3,9 @@ from random import shuffle
 import sys
 import time
 
-totalQuestions = 100
-quizSeconds = 15
+# normal ratio is 5 minutes for 100 questions, so 20 questions per minute
+totalQuestions = 50
+quizSeconds = 170
 
 class mathTest:
     def __init__(self,total,timer):
@@ -14,7 +15,11 @@ class mathTest:
         self.stats['correct']   = 0
         self.stats['incorrect'] = 0
         self.stats['skipped']   = 0
+        self.stats['answered']  = 0
         self.quizTimer = timer
+        self.corrections = ''
+        self.corrections += '\n###################################'
+        self.corrections += '\n######  Corrected Answers:   ######\n'
         
         self.big = []
         # need to generate 200 numbers 0 - 10
@@ -33,24 +38,44 @@ class mathTest:
         except ValueError:
             return False
     
-    def summary(self,s):
+    def summary(self,s,remainingSecs = True):
         print s
-        for s in self.stats:
-            print "questions",s,":",self.stats[s]
+        summ = 'questions - answered: %d of %d, correct: %d, incorrect: %d, skipped: %d' % (self.stats['answered'],self.stats['total'],self.stats['correct'],self.stats['incorrect'],self.stats['skipped'])
+        #summ = 'questions - answered: %d, correct: %s, incorrect: %s' % (self.stats['answered'],self.stats['correct'],self.stats['incorrect'])
+        #for st in self.stats:
+        #    print "questions",st,":",self.stats[st]
+        print summ
         
         remaining = self.end - self.now
-        if remaining < 0:
-            print "Times Up!!"
-        else:
+        if remainingSecs and remaining >= 0:
             print remaining,"seconds remaining"
+        print "##########################################################################"
 
     def carryOn(self,s = ''):
         self.summary(s)
 
     def finish(self,s = ''):
-        self.summary(s+" Final Results")
+        self.summary(s+" - Final Results",False)
+        self.finalGrade()
         sys.exit(0)
         
+    def finalGrade(self):
+        print ""
+        if self.stats['incorrect'] > 0:
+            print self.corrections
+            
+        print '###################################'
+        print '######  Final Grade: %5.1f%%  ######' % (float(self.stats['correct']) / float(self.stats['total']) * 100)
+        print '###################################'
+        
+    def update(self,dct):
+        for dk in dct:
+            self.stats[dk] += dct[dk]
+        self.stats['answered'] = self.stats['incorrect'] + self.stats['correct']
+        
+    def stashErrors(self,top,bot,answer):
+        self.corrections += '%2d X %2d = %2d   --   Your incorrect answer was: %3s\n' % (top,bot,(top*bot),answer)
+
     def quiz(self,l):
         # start timer
         self.now = int(time.time())
@@ -64,7 +89,7 @@ class mathTest:
             
             self.stats['counter'] += 1
             
-            answer = raw_input( "Q%d : what is  %d  X  %d ?: " % (self.stats['counter'],top,bot))
+            answer = raw_input( "Q#%d : what is  %d  X  %d ?: " % (self.stats['counter'],top,bot))
             
             # get the answer time....
             self.now = int(time.time())
@@ -76,18 +101,24 @@ class mathTest:
             elif answer == "q" or answer == "Q":
                 self.finish("Bailing Early")
             elif not self.is_number(answer):
-                self.stats['skipped'] += 1
+                self.test.insert(0,top)
+                self.test.insert(0,bot)
+                self.update({ 'skipped': 1})
                 self.carryOn('SKIPPED')
             elif ( top * bot ) == int(answer):
-                self.stats['correct'] += 1
+                self.update({ 'correct': 1})
                 self.carryOn("RIGHT!!")
             else:
-                self.stats['incorrect'] += 1
-                self.carryOn("OOPS - the correct answer is: "+str(top*bot))
+                self.update({ 'incorrect': 1})
+                self.stashErrors(top,bot,answer)
+                self.carryOn("OOPS - You answered incorrectly")
         
-        ### if we ran out of time before getting here, issue appropriate message
-        ##if self.now > self.end:
-        ##    self.summary("Times Up!!  Final Results")
+        # if we ran out of time before getting here, issue appropriate message
+        if self.now >= self.end:
+            self.finish("Times Up!!")
+        else:
+            self.finish("WOW!! You completed the test with time to spare")
+        
 
 mt = mathTest(totalQuestions,quizSeconds)
 mt.quiz(mt.test)
