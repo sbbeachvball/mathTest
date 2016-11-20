@@ -6,6 +6,7 @@ import time
 # normal ratio is 5 minutes for 100 questions, so 20 questions per minute
 totalQuestions = 50
 quizSeconds = 170
+#quizSeconds = 10
 
 class mathTest:
     def __init__(self,total,timer):
@@ -59,11 +60,27 @@ class mathTest:
         self.finalGrade()
         sys.exit(0)
         
+    def remainingAnswers(self):
+        if len(self.test) < 2:
+            return
+            
+        print '\n'
+        print '###################################'
+        print '######  Remaining Questions  ######'
+        print '###################################'
+        while len(self.test) >= 2:
+            top = self.test.pop()
+            bot = self.test.pop()
+            print "%d X %d = %d" % (top,bot,(top*bot))
+        
     def finalGrade(self):
         print ""
         if self.stats['incorrect'] > 0:
             print self.corrections
             
+        self.remainingAnswers()
+            
+        print ""
         print '###################################'
         print '######  Final Grade: %5.1f%%  ######' % (float(self.stats['correct']) / float(self.stats['total']) * 100)
         print '###################################'
@@ -118,6 +135,7 @@ class mathTest:
             self.finish("Times Up!!")
         else:
             self.finish("WOW!! You completed the test with time to spare")
+            
         
 
 mt = mathTest(totalQuestions,quizSeconds)
