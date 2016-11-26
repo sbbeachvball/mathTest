@@ -5,8 +5,33 @@ import time
 
 # normal ratio is 5 minutes for 100 questions, so 20 questions per minute
 totalQuestions = 50
-quizSeconds = 170
+quizSeconds = 175
 #quizSeconds = 10
+
+# this isn't used but is a nice subroutine that could be useful for my
+# padStr below.
+def rep(s, m):
+    a, b = divmod(m, len(s))
+    return s * a + s[:b]
+
+# s is the string to pad
+# p is the pad characters
+# l is the length to pad things out to
+# spad is used to surround s with before padding unless len(s) == 0
+def padStr(s = '',spad = ' ', p = '#', l = 60):
+    sl = len(s)
+    if sl == 0:
+        spad = ''
+        
+    pl = l - sl - (len(spad) * 2)
+    if pl <= 0:
+        if opt.debug:
+            print 'string too long to pad, sorry'
+        return s
+    mod = pl % 2
+    fpad = pl / 2
+    rpad = pl / 2 + mod
+    return p*fpad+spad+s+spad+p*rpad
 
 class mathTest:
     def __init__(self,total,timer):
@@ -19,8 +44,8 @@ class mathTest:
         self.stats['answered']  = 0
         self.quizTimer = timer
         self.corrections = ''
-        self.corrections += '\n###################################'
-        self.corrections += '\n######  Corrected Answers:   ######\n'
+        self.corrections += '\n'+padStr()
+        self.corrections += '\n'+padStr('Corrected Answers:')+'\n'
         
         self.big = []
         # need to generate 200 numbers 0 - 10
@@ -32,6 +57,7 @@ class mathTest:
         shuffle(self.big)
         #print self.big
         self.test = self.big[0:(total*2)]
+                
     def is_number(self,s):
         try: 
             int(s)
@@ -50,7 +76,7 @@ class mathTest:
         remaining = self.end - self.now
         if remainingSecs and remaining >= 0:
             print remaining,"seconds remaining"
-        print "##########################################################################"
+        print padStr()
 
     def carryOn(self,s = ''):
         self.summary(s)
@@ -65,9 +91,9 @@ class mathTest:
             return
             
         print '\n'
-        print '###################################'
-        print '######  Remaining Questions  ######'
-        print '###################################'
+        print padStr()
+        print padStr('%d' % (len(self.test)/2) + ' Remaining Questions')
+        print padStr()
         while len(self.test) >= 2:
             top = self.test.pop()
             bot = self.test.pop()
@@ -81,9 +107,9 @@ class mathTest:
         self.remainingAnswers()
             
         print ""
-        print '###################################'
-        print '######  Final Grade: %5.1f%%  ######' % (float(self.stats['correct']) / float(self.stats['total']) * 100)
-        print '###################################'
+        print padStr()
+        print padStr('Final Grade: %5.1f%%' % (float(self.stats['correct']) / float(self.stats['total']) * 100))
+        print padStr()
         
     def update(self,dct):
         for dk in dct:
@@ -140,3 +166,8 @@ class mathTest:
 
 mt = mathTest(totalQuestions,quizSeconds)
 mt.quiz(mt.test)
+#print padStr('#')
+#print padStr('')
+#print padStr('Final Results !!','  ')
+#print padStr('Answered questions')
+#print padStr('Yay!')
