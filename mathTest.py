@@ -146,7 +146,8 @@ class mathTest:
             elif not self.is_number(answer):
                 self.test.insert(0,top)
                 self.test.insert(0,bot)
-                self.update({ 'skipped': 1})
+                self.update({ 'skipped' : 1})
+                self.update({ 'counter' : -1})
                 self.carryOn('SKIPPED')
             elif ( top * bot ) == int(answer):
                 self.update({ 'correct': 1})
