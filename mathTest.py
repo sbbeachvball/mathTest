@@ -2,11 +2,21 @@
 from random import shuffle
 import sys
 import time
+import argparse
 
+
+parser = argparse.ArgumentParser(description='Process some integers.')
+parser.add_argument('--q_num', default=50, type=int, help='number of questions in quiz')
+parser.add_argument('--q_dur', default=175, type=int, help='number of seconds for the quiz duration')
+parser.add_argument('--debug', action='store_false', help='debug mode')
+
+args = parser.parse_args()
+
+#print 'questions:',args.q_num
+#print 'quiztime:',args.q_dur
+
+#sys.exit(0)
 # normal ratio is 5 minutes for 100 questions, so 20 questions per minute
-totalQuestions = 50
-quizSeconds = 175
-#quizSeconds = 10
 
 # this isn't used but is a nice subroutine that could be useful for my
 # padStr below.
@@ -25,7 +35,7 @@ def padStr(s = '',spad = ' ', p = '#', l = 60):
         
     pl = l - sl - (len(spad) * 2)
     if pl <= 0:
-        if opt.debug:
+        if args.debug:
             print 'string too long to pad, sorry'
         return s
     mod = pl % 2
@@ -46,6 +56,8 @@ class mathTest:
         self.corrections = ''
         self.corrections += '\n'+padStr()
         self.corrections += '\n'+padStr('Corrected Answers:')+'\n'
+        self.remaining = 0
+        self.earned = 0
         
         self.big = []
         # need to generate 200 numbers 0 - 10
@@ -73,14 +85,27 @@ class mathTest:
         #    print "questions",st,":",self.stats[st]
         print summ
         
-        remaining = self.end - self.now
-        if remainingSecs and remaining >= 0:
-            print remaining,"seconds remaining"
+        self.remaining = self.end - self.now
+        if remainingSecs and self.remaining >= 0:
+            print self.remaining,"seconds remaining"
         print padStr()
 
     def carryOn(self,s = ''):
         self.summary(s)
 
+    def instructions(self):
+        print "The controls are as follows:"
+        print "  space - skips to next question"
+        print "  q     - exit now"
+        print "  x     - exit now"
+        print ""
+        #print "Hit return to begin:"
+        raw_input("Hit return to begin!")
+        
+    def beg(self):
+        self.now = int(time.time())
+        self.end = self.now + self.quizTimer        
+        
     def finish(self,s = ''):
         self.summary(s+" - Final Results",False)
         self.finalGrade()
@@ -98,6 +123,22 @@ class mathTest:
             top = self.test.pop()
             bot = self.test.pop()
             print "%d X %d = %d" % (top,bot,(top*bot))
+    
+    def timeEarned(self):
+        self.earned = {}
+        self.earned['perc'] = 0
+        self.earned['time'] = 0
+                
+        perc = int((float(self.stats['correct']) / float(self.stats['total']) * 100))
+        self.earned['time'] = self.remaining if self.remaining > 0 and perc > 85 else 0
+        
+        self.earned['perc'] =  (perc - 85) if perc > 85 else 0            
+        self.earned['total'] = self.earned['time'] + self.earned['perc']
+        
+        print ""
+        print padStr()
+        print padStr("You earned: "+str(self.earned['total'])+" minutes ("+str(self.earned['time'])+" secs + " + str(self.earned['perc']) +" perc)")
+        print padStr()
         
     def finalGrade(self):
         print ""
@@ -111,6 +152,8 @@ class mathTest:
         print padStr('Final Grade: %5.1f%%' % (float(self.stats['correct']) / float(self.stats['total']) * 100))
         print padStr()
         
+        self.timeEarned()
+        
     def update(self,dct):
         for dk in dct:
             self.stats[dk] += dct[dk]
@@ -120,10 +163,7 @@ class mathTest:
         self.corrections += '%2d X %2d = %2d   --   Your incorrect answer was: %3s\n' % (top,bot,(top*bot),answer)
 
     def quiz(self,l):
-        # start timer
-        self.now = int(time.time())
-        self.end = self.now + self.quizTimer
-        
+        self.beg()
         # while there is still time ask the next question
         while len(self.test) >= 2 and self.now < self.end:
             # pull two entries off of the list
@@ -141,7 +181,7 @@ class mathTest:
             # should probably check time BEFORE evaluating the answer
             if self.now > self.end:
                 self.finish("Sorry, time ran out")
-            elif answer == "q" or answer == "Q":
+            elif answer == "q" or answer == "Q" or answer == 'x' or answer == "X":
                 self.finish("Bailing Early")
             elif not self.is_number(answer):
                 self.test.insert(0,top)
@@ -165,7 +205,7 @@ class mathTest:
             
         
 
-mt = mathTest(totalQuestions,quizSeconds)
+mt = mathTest(args.q_num,args.q_dur)
 mt.quiz(mt.test)
 #print padStr('#')
 #print padStr('')
