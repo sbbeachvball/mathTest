@@ -5,7 +5,7 @@ import time
 import argparse
 
 
-parser = argparse.ArgumentParser(description='Process some integers.')
+parser = argparse.ArgumentParser(description='Administer a multiplication quiz.')
 parser.add_argument('--q_num', default=50, type=int, help='number of questions in quiz')
 parser.add_argument('--q_dur', default=175, type=int, help='number of seconds for the quiz duration')
 parser.add_argument('--debug', action='store_false', help='debug mode')
@@ -95,9 +95,9 @@ class mathTest:
 
     def instructions(self):
         print "The controls are as follows:"
-        print "  space - skips to next question"
-        print "  q     - exit now"
-        print "  x     - exit now"
+        print "  return       - skips to next question"
+        print "  q, Q,x or X  - quit/exit early"
+        print "  number       - answers to the question"
         print ""
         #print "Hit return to begin:"
         raw_input("Hit return to begin!")
@@ -163,6 +163,7 @@ class mathTest:
         self.corrections += '%2d X %2d = %2d   --   Your incorrect answer was: %3s\n' % (top,bot,(top*bot),answer)
 
     def quiz(self,l):
+        self.instructions()
         self.beg()
         # while there is still time ask the next question
         while len(self.test) >= 2 and self.now < self.end:
