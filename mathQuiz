@@ -1,2 +1,5 @@
 #!/usr/bin/env bash
 ~/testing/mathTest/mathTest.py
+
+echo "sleeping 30 seconds to keep this window open for a bit longer"
+sleep 30

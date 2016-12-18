@@ -99,7 +99,8 @@ class mathTest:
         print "  q, Q,x or X  - quit/exit early"
         print "  number       - answers to the question"
         print ""
-        #print "Hit return to begin:"
+        print "This run of the quiz is set for",args.q_num,"questions in",args.q_dur,"seconds"
+        print ""
         raw_input("Hit return to begin!")
         
     def beg(self):
